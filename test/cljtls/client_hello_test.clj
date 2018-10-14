@@ -8,7 +8,7 @@
             SessionId
             CipherSuites
             CompressionMethods
-            Extensions ServerNameExtension]))
+            Extensions ServerNameExtension StatusRequestExtension]))
 
 (deftest client-hello-test
   (def hello
@@ -136,7 +136,29 @@
           (is (= (String.
                    (byte-array
                      (get-in extensions [:value :server-extension :server-name])))
-                "example.ulfheim.net")))))))
+                "example.ulfheim.net"))))
+      (testing "status request"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:status-request (StatusRequestExtension.
+                                   [0x00 0x05]
+                                   [0x00 0x05]
+                                   [0x01]
+                                   [0x00 0x00]
+                                   [0x00 0x00])})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :status-request :extension-type])
+                [0x00 0x05]))
+          (is (= (get-in extensions [:value :status-request :data-follows-bytes])
+                [0x00 0x05]))
+          (is (= (get-in extensions [:value :status-request :certificate-status-type])
+                [0x01]))
+          (is (= (get-in extensions [:value :status-request :responder-id-size])
+                [0x00 0x00]))
+          (is (= (get-in extensions [:value :status-request :request-extension-size])
+                [0x00 0x00]))
+          )))))
 
 
 

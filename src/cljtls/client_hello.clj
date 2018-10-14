@@ -8,18 +8,27 @@
 (defrecord CipherSuites [size ciphers])
 (defrecord CompressionMethods [size value])
 (defrecord Extensions [size value])
-(defrecord ServerNameExtension [extension-type
-                                data-follows-bytes
-                                first-list-entry-bytes
-                                list-entry-type
-                                bytes-of-entry-follows
-                                server-name])
+(defrecord ServerNameExtension
+  [extension-type
+   data-follows-bytes
+   first-list-entry-bytes
+   list-entry-type
+   bytes-of-entry-follows
+   server-name])
 
-(defrecord ClientHello [record-header
-                        handshake-header
-                        client-version
-                        client-random
-                        session-id
-                        cipher-suites
-                        compression-methods
-                        extensions])
+(defrecord StatusRequestExtension
+  [extension-type
+   data-follows-bytes
+   certificate-status-type
+   responder-id-size
+   request-extension-size])
+
+(defrecord ClientHello
+  [record-header
+   handshake-header
+   client-version
+   client-random
+   session-id
+   cipher-suites
+   compression-methods
+   extensions])
