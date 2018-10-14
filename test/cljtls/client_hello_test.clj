@@ -8,7 +8,7 @@
             SessionId
             CipherSuites
             CompressionMethods
-            Extensions]))
+            Extensions ServerNameExtension]))
 
 (deftest client-hello-test
   (def hello
@@ -111,12 +111,32 @@
         (is (= (:value compression-methods) 0x00))))
 
     (testing "Extensions"
-      (let [extensions
-            (Extensions.
-              [0x00 0x58] nil)]
-        (is (= (:size extensions) [0x00 0x58]))
-        (is (= (:value extensions) nil))))
-    ))
+      (testing "ServerNameExtension"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:server-extension (ServerNameExtension.
+                                     [0x00 0x00]
+                                     [0x00 0x18]
+                                     [0x00 0x16]
+                                     [0x00]
+                                     [0x00 0x13]
+                                     [0x65 0x78 0x61 0x6d 0x70 0x6c 0x65 0x2e 0x75 0x6c 0x66 0x68 0x65 0x69 0x6d 0x2e 0x6e 0x65 0x74])})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :server-extension :extension-type])
+                [0x00 0x00]))
+          (is (= (get-in extensions [:value :server-extension :data-follows-bytes])
+                [0x00 0x18]))
+          (is (= (get-in extensions [:value :server-extension :first-list-entry-bytes])
+                [0x00 0x16]))
+          (is (= (get-in extensions [:value :server-extension :list-entry-type])
+                [0x00]))
+          (is (= (get-in extensions [:value :server-extension :bytes-of-entry-follows])
+                [0x00 0x13]))
+          (is (= (String.
+                   (byte-array
+                     (get-in extensions [:value :server-extension :server-name])))
+                "example.ulfheim.net")))))))
 
 
 

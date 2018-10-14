@@ -8,6 +8,12 @@
 (defrecord CipherSuites [size ciphers])
 (defrecord CompressionMethods [size value])
 (defrecord Extensions [size value])
+(defrecord ServerNameExtension [extension-type
+                                data-follows-bytes
+                                first-list-entry-bytes
+                                list-entry-type
+                                bytes-of-entry-follows
+                                server-name])
 
 (defrecord ClientHello [record-header
                         handshake-header
