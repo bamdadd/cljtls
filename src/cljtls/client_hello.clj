@@ -35,6 +35,12 @@
    data-size
    value-for-uncompressed-form])
 
+(defrecord SignatureAlgorithms
+  [extension-type
+   data-follows-bytes
+   data-size
+   supported-algorithms])
+
 (defrecord ClientHello
   [record-header
    handshake-header

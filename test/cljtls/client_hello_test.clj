@@ -9,7 +9,7 @@
             SessionId
             CipherSuites
             CompressionMethods
-            Extensions ServerNameExtension StatusRequestExtension SupportedGroups ECPointFormat]))
+            Extensions ServerNameExtension StatusRequestExtension SupportedGroups ECPointFormat SignatureAlgorithms]))
 
 (deftest client-hello-test
   (def hello
@@ -210,6 +210,42 @@
                 1))
           (is (= (get-in extensions [:value :ec-point-format :value-for-uncompressed-form])
                 [0x00]))
+          ))
+      (testing "Signature Algorithms"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:signature-algorithms (SignatureAlgorithms.
+                                         [0x00 0x0d]
+                                         [0x00 0x12]
+                                         [0x00 0x10]
+                                         [[0x04 0x01]       ;RSA/PKCS1/SHA256
+                                          [0x04 0x03]       ;ECDSA/SECP256r1/SHA256
+                                          [0x05 0x01]       ;RSA/PKCS1/SHA386
+                                          [0x05 0x03]       ;ECDSA/SECP384r1/SHA384
+                                          [0x06 0x01]       ;RSA/PKCS1/SHA512
+                                          [0x06 0x03]       ;ECDSA/SECP521r1/SHA512
+                                          [0x02 0x01]       ;RSA/PKCS1/SHA1
+                                          [0x02 0x03]       ;ECDSA/SHA1
+                                          ])})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :signature-algorithms :extension-type])
+                [0x00 0x0d]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :signature-algorithms :data-follows-bytes]))
+                18))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :signature-algorithms :data-size]))
+                16))
+          (is (= (get-in extensions [:value :signature-algorithms :supported-algorithms])
+                [[0x04 0x01]
+                 [0x04 0x03]
+                 [0x05 0x01]
+                 [0x05 0x03]
+                 [0x06 0x01]
+                 [0x06 0x03]
+                 [0x02 0x01]
+                 [0x02 0x03]]))
           )))))
 
 
