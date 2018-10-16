@@ -1,6 +1,7 @@
 (ns cljtls.client-hello-test
   (:require [clojure.test :refer :all]
-            [cljtls.client-hello :refer :all])
+            [cljtls.client-hello :refer :all]
+            [cljtls.bytes :as tlsbytes])
   (:import [cljtls.client_hello
             RecordHeader
             HandshakeHeader ClientVersion
@@ -8,7 +9,7 @@
             SessionId
             CipherSuites
             CompressionMethods
-            Extensions ServerNameExtension StatusRequestExtension]))
+            Extensions ServerNameExtension StatusRequestExtension SupportedGroups ECPointFormat]))
 
 (deftest client-hello-test
   (def hello
@@ -147,17 +148,68 @@
                                    [0x01]
                                    [0x00 0x00]
                                    [0x00 0x00])})]
-          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (tlsbytes/bytes->num (:size extensions)) 88))
           (is (= (get-in extensions [:value :status-request :extension-type])
                 [0x00 0x05]))
-          (is (= (get-in extensions [:value :status-request :data-follows-bytes])
-                [0x00 0x05]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :status-request :data-follows-bytes]))
+                5))
           (is (= (get-in extensions [:value :status-request :certificate-status-type])
                 [0x01]))
-          (is (= (get-in extensions [:value :status-request :responder-id-size])
-                [0x00 0x00]))
-          (is (= (get-in extensions [:value :status-request :request-extension-size])
-                [0x00 0x00]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :status-request :responder-id-size]))
+                0))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :status-request :request-extension-size]))
+                0))
+          ))
+      (testing "supported groups"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:supported-groups (SupportedGroups.
+                                     [0x00 0x0a]
+                                     [0x00 0x0a]
+                                     [0x00 0x08]
+                                     [[0x00 0x1d]
+                                      [0x00 0x17]
+                                      [0x00 0x18]
+                                      [0x00 0x19]])})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :supported-groups :extension-type])
+                [0x00 0x0a]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :supported-groups :data-follows-bytes]))
+                10))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :supported-groups :data-size]))
+                8))
+          (is (= (get-in extensions [:value :supported-groups :supported-curves])
+                [[0x00 0x1d]                                ;x25519
+                 [0x00 0x17]                                ;secp256r1
+                 [0x00 0x18]                                ;secp384r1
+                 [0x00 0x19]]))                             ;secp521r1
+          ))
+      (testing "EC point format"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:ec-point-format (ECPointFormat.
+                                    [0x00 0x0b]
+                                    [0x00 0x02]
+                                    [0x01]
+                                    [0x00])})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :ec-point-format :extension-type])
+                [0x00 0x0b]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :ec-point-format :data-follows-bytes]))
+                2))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :ec-point-format :data-size]))
+                1))
+          (is (= (get-in extensions [:value :ec-point-format :value-for-uncompressed-form])
+                [0x00]))
           )))))
 
 

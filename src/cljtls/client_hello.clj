@@ -23,6 +23,18 @@
    responder-id-size
    request-extension-size])
 
+(defrecord SupportedGroups
+  [extension-type
+   data-follows-bytes
+   data-size
+   supported-curves])
+
+(defrecord ECPointFormat
+  [extension-type
+   data-follows-bytes
+   data-size
+   value-for-uncompressed-form])
+
 (defrecord ClientHello
   [record-header
    handshake-header
