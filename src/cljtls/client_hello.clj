@@ -23,7 +23,7 @@
    responder-id-size
    request-extension-size])
 
-(defrecord SupportedGroups
+(defrecord SupportedGroupsExtension
   [extension-type
    data-follows-bytes
    data-size
@@ -35,11 +35,22 @@
    data-size
    value-for-uncompressed-form])
 
-(defrecord SignatureAlgorithms
+(defrecord SignatureAlgorithmsExtension
   [extension-type
    data-follows-bytes
    data-size
    supported-algorithms])
+
+(defrecord RenegotiationInfoExtension
+  [extension-type
+   data-follows-bytes
+   data-size
+   renegotiation])
+
+(defrecord SignedCertificateTimestampExtension
+  [extension-type
+   data-follows-bytes
+   data])
 
 (defrecord ClientHello
   [record-header

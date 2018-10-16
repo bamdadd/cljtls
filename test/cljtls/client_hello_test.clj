@@ -9,7 +9,7 @@
             SessionId
             CipherSuites
             CompressionMethods
-            Extensions ServerNameExtension StatusRequestExtension SupportedGroups ECPointFormat SignatureAlgorithms]))
+            Extensions ServerNameExtension StatusRequestExtension SupportedGroupsExtension ECPointFormat SignatureAlgorithmsExtension RenegotiationInfoExtension SignedCertificateTimestampExtension]))
 
 (deftest client-hello-test
   (def hello
@@ -167,7 +167,7 @@
         (let [extensions
               (Extensions.
                 [0x00 0x58]
-                {:supported-groups (SupportedGroups.
+                {:supported-groups (SupportedGroupsExtension.
                                      [0x00 0x0a]
                                      [0x00 0x0a]
                                      [0x00 0x08]
@@ -215,7 +215,7 @@
         (let [extensions
               (Extensions.
                 [0x00 0x58]
-                {:signature-algorithms (SignatureAlgorithms.
+                {:signature-algorithms (SignatureAlgorithmsExtension.
                                          [0x00 0x0d]
                                          [0x00 0x12]
                                          [0x00 0x10]
@@ -246,7 +246,48 @@
                  [0x06 0x03]
                  [0x02 0x01]
                  [0x02 0x03]]))
-          )))))
+          ))
+      (testing "Renegotiation Info"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:renegotiation-info (RenegotiationInfoExtension.
+                                       [0xff 0xf1]
+                                       [0x00 0x01]
+                                       [0x00]
+                                       nil
+                                       )})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :renegotiation-info :extension-type])
+                [0xff 0xf1]))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :renegotiation-info :data-follows-bytes]))
+                1))
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :renegotiation-info :data-size]))
+                0))
+          (is (=
+                (get-in extensions [:value :renegotiation-info :renegotiation])
+                nil))
+          ))
+      (testing "Signed Certificate Timestamp"
+        (let [extensions
+              (Extensions.
+                [0x00 0x58]
+                {:signed-certificate-timestamp (SignedCertificateTimestampExtension.
+                                                 [0x00 0x12]
+                                                 [0x00 0x00]
+                                                 nil)})]
+          (is (= (:size extensions) [0x00 0x58]))
+          (is (= (get-in extensions [:value :signed-certificate-timestamp :extension-type])
+                [0x00 0x12]))
+
+          (is (= (tlsbytes/bytes->num
+                   (get-in extensions [:value :signed-certificate-timestamp :data-follows-bytes]))
+                0))
+          (is (=
+                (get-in extensions [:value :signed-certificate-timestamp :data])
+                nil)))))))
 
 
 
